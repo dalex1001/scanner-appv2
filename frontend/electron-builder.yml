@@ -1,0 +1,15 @@
+appId: com.example.scanner
+productName: Scanner
+asar: true
+directories:
+  output: release
+files:
+  - www/**/*
+  - electron/**/*
+  - package.json
+extraResources:
+  - from: ../backend/dist/scanner-api.exe
+    to: backend/scanner-api.exe
+win:
+  target: nsis
+  artifactName: ${productName}-${version}-Setup.${ext}
