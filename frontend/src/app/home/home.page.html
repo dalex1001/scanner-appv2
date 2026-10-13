@@ -1,150 +1,71 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Inventory Scanner</ion-title>
+    <ion-title>Circuit Board Scanner</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-content style="text-align: center;">
+      
+      <!-- Camera Selector (No ngModel required) -->
+      <ion-item style="margin-bottom: 12px;" *ngIf="videoDevices.length > 1">
+        <ion-label>Select Camera:</ion-label>
+        <ion-select (ionChange)="onCameraChange($event)" interface="popover">
+          <ion-select-option *ngFor="let device of videoDevices" [value]="device.deviceId">
+            {{ device.label }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
 
-  <!-- Visual Inspection Camera Card (The Lens) -->
-  <ion-card class="ion-margin-bottom">
-    <ion-card-header class="ion-no-padding ion-padding-horizontal ion-padding-top">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <ion-card-title style="font-size: 1.1rem;">
-          <ion-icon name="camera-outline" style="vertical-align: middle; margin-right: 6px;"></ion-icon>
-          Board Lens
-        </ion-card-title>
-        <div>
-          <!-- Switch Camera Button -->
-          <ion-button *ngIf="isCameraActive && videoDevices.length > 1" fill="clear" size="small" (click)="switchCamera()" title="Switch Camera">
-            <ion-icon slot="icon-only" name="sync-outline"></ion-icon>
-          </ion-button>
-          
-          <ion-button fill="clear" size="small" (click)="toggleCamera()">
-            {{ isCameraActive ? 'Turn Off' : 'Start Camera' }}
-          </ion-button>
-        </div>
-      </div>
-    </ion-card-header>
-
-    <ion-card-content class="ion-text-center">
-      <div *ngIf="isCameraActive" style="position: relative; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 12px; margin-top: 12px;">
-        <video #videoElement autoplay playsinline style="width: 100%; max-height: 300px; object-fit: contain; display: block;"></video>
-        <ion-button 
-          color="light" 
-          style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); opacity: 0.9;" 
-          (click)="captureSnapshot()">
-          <ion-icon slot="start" name="aperture-outline"></ion-icon>
-          Snap Board
-        </ion-button>
-      </div>
-
+      <video #videoElement autoplay playsinline style="width: 100%; max-height: 380px; background: #000; border-radius: 8px;"></video>
       <canvas #canvasElement style="display: none;"></canvas>
 
-      <!-- Captured Photo Preview & Analysis Buttons -->
-      <div *ngIf="capturedPhotoUrl" style="margin-top: 12px; text-align: center;">
-        <p style="font-size: 0.85rem; color: var(--ion-color-medium); margin-bottom: 6px;">CAPTURED IMAGE</p>
-        <img 
-          [src]="capturedPhotoUrl" 
-          alt="Captured Board" 
-          style="max-height: 250px; border-radius: 8px; border: 2px solid var(--ion-color-primary);" />
-        
-        <div style="margin-top: 12px; display: flex; justify-content: center; gap: 10px;">
-          <ion-button fill="clear" size="small" color="medium" (click)="clearSnapshot()" [disabled]="isProcessingImage">
-            Clear
-          </ion-button>
-          <ion-button fill="solid" size="small" color="primary" (click)="analyzeBoard()" [disabled]="isProcessingImage">
-            <ion-spinner *ngIf="isProcessingImage" name="crescent" slot="start" style="width: 16px;"></ion-spinner>
-            <ion-icon *ngIf="!isProcessingImage" slot="start" name="scan-outline"></ion-icon>
-            {{ isProcessingImage ? 'Analyzing...' : 'Identify Board' }}
-          </ion-button>
-        </div>
-      </div>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Board Analysis Result Card -->
-  <ion-card *ngIf="boardAnalysisResult" [color]="boardAnalysisResult.status === 'success' ? 'tertiary' : 'danger'" class="ion-margin-bottom">
-    <ion-card-header>
-      <ion-card-title>
-        <ion-icon name="hardware-chip-outline" style="vertical-align: middle;"></ion-icon>
-        {{ boardAnalysisResult.status === 'success' ? 'Board Identified' : 'Analysis Failed' }}
-      </ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p *ngIf="boardAnalysisResult.board_id" style="font-size: 1.1rem;"><strong>Part Number:</strong> {{ boardAnalysisResult.board_id }}</p>
-      <p *ngIf="boardAnalysisResult.confidence"><strong>Confidence:</strong> {{ boardAnalysisResult.confidence }}</p>
-      <p *ngIf="boardAnalysisResult.message" style="margin-top: 8px;">{{ boardAnalysisResult.message }}</p>
-      <div *ngIf="boardAnalysisResult.data?.image_url" style="background: #ffffff; text-align: center; padding: 12px; margin-top: 10px;">
-        <img [src]="boardAnalysisResult.data.image_url" style="max-height: 200px; border-radius: 6px;" />
-      </div>
-      <ion-button expand="block" fill="outline" color="light" class="ion-margin-top" (click)="boardAnalysisResult = null">Dismiss</ion-button>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Scanner Input -->
-  <ion-card>
-    <ion-card-content>
-      <ion-item lines="none">
-        <ion-icon slot="start" name="barcode-outline" color="medium"></ion-icon>
-        <input 
-          #scannerInput 
-          type="text" 
-          placeholder="Scan barcode here..." 
-          style="width: 100%; border: none; outline: none; padding: 10px; font-size: 16px;"
-          (keyup.enter)="onScan(scannerInput.value); scannerInput.value = ''"
-          autofocus>
-      </ion-item>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Last Scanned Banner -->
-  <ion-card *ngIf="lastScannedCode" color="light" class="ion-margin-bottom ion-margin-top">
-    <ion-card-content class="ion-text-center">
-      <p style="margin: 0; font-size: 0.9rem;">LAST SCANNED CODE</p>
-      <h2 style="margin: 0.2rem 0 0 0; font-weight: bold;">{{ lastScannedCode }}</h2>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- Barcode Result Cards -->
-  <ion-card *ngIf="scanResult?.match_found" color="success">
-    <div *ngIf="scanResult.data?.image_url" style="background: #ffffff; text-align: center; padding: 12px;">
-      <img [src]="scanResult.data.image_url" style="max-height: 200px; border-radius: 6px;" />
-    </div>
-    <ion-card-header>
-      <ion-card-title>{{ scanResult.data?.name }}</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p>{{ scanResult.data?.description }}</p>
-      <ion-button expand="block" fill="outline" color="light" class="ion-margin-top" (click)="clearResult()">Clear</ion-button>
-    </ion-card-content>
-  </ion-card>
-
-  <ion-card *ngIf="scanResult && !scanResult.match_found" color="danger">
-    <ion-card-header>
-      <ion-card-title>Not Found</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p>No match for: <strong>{{ scanResult.scanned_item }}</strong></p>
-      <ion-button expand="block" fill="outline" color="light" class="ion-margin-top" (click)="clearResult()">Clear</ion-button>
-    </ion-card-content>
-  </ion-card>
-
-  <!-- File Upload Card -->
-  <ion-card color="secondary" class="ion-margin-top">
-    <ion-card-header>
-      <ion-card-title style="font-size: 1.1rem;">Import Data</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <input type="file" (change)="onFileSelected($event)" accept=".csv,.txt" style="display: none;" #fileInput>
-      <ion-button expand="block" fill="solid" color="light" (click)="fileInput.click()">
-        <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
-        Choose CSV File
+      <ion-button expand="block" color="secondary" (click)="capturePhoto()" style="margin-top: 12px;">
+        Capture Photo
       </ion-button>
-      <p *ngIf="uploadMessage" style="margin-top: 10px; font-weight: bold; text-align: center;">
-        {{ uploadMessage }}
-      </p>
+
+      <div *ngIf="capturedImage" style="margin-top: 15px;">
+        <img [src]="capturedImage" style="max-height: 220px; border-radius: 8px;" />
+        
+        <ion-button expand="block" color="success" (click)="identifyBoard()" [disabled]="isAnalyzing" style="margin-top: 10px;">
+          <ion-spinner *ngIf="isAnalyzing" name="crescent"></ion-spinner>
+          <span *ngIf="!isAnalyzing">Identify Circuit Board</span>
+        </ion-button>
+
+        <ion-button expand="block" color="medium" (click)="resetScanner()" [disabled]="isAnalyzing" style="margin-top: 10px;">
+          Clear & Retake
+        </ion-button>
+      </div>
     </ion-card-content>
   </ion-card>
 
+  <ion-card *ngIf="boardAnalysisResult">
+    <ion-card-header>
+      <ion-card-title>Scan Results</ion-card-title>
+      <ion-card-subtitle *ngIf="boardAnalysisResult.board_id">
+        Board ID: {{ boardAnalysisResult.board_id }}
+      </ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content *ngIf="boardAnalysisResult.status === 'success'">
+      <p><strong>Device Type:</strong> {{ boardAnalysisResult.device_type }}</p>
+      <p><strong>Brand:</strong> {{ boardAnalysisResult.brand }}</p>
+      <p><strong>Model:</strong> {{ boardAnalysisResult.model }}</p>
+      <p><strong>Notes:</strong> {{ boardAnalysisResult.notes }}</p>
+      <hr style="margin: 15px 0;" />
+      <h3>Search Replacements</h3>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="4"><ion-button expand="block" color="danger" [href]="boardAnalysisResult.search_links?.google" target="_blank">Google</ion-button></ion-col>
+          <ion-col size="4"><ion-button expand="block" color="warning" [href]="boardAnalysisResult.search_links?.ebay" target="_blank">eBay</ion-button></ion-col>
+          <ion-col size="4"><ion-button expand="block" color="tertiary" [href]="boardAnalysisResult.search_links?.shopjimmy" target="_blank">ShopJimmy</ion-button></ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+
+    <ion-card-content *ngIf="boardAnalysisResult.status === 'error'">
+      <p style="color: var(--ion-color-danger);">{{ boardAnalysisResult.message }}</p>
+    </ion-card-content>
+  </ion-card>
 </ion-content>

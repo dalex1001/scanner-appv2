@@ -1,0 +1,7 @@
+Timestamp,Board ID,Device Type,Brand,Model,Notes
+2026-10-12 12:08:04,BN94-00053T,TV / Monitor Main Board,Samsung,Unknown,"Label reads ""BN94-00053T P01"", ""MX10BN9400053TEB4NT3RXS5J"", firmware/build version ""1905.0"", dated ""2022-03-25"", and ""CAD ON""."
+2026-10-12 12:21:39,** BN94-00053T (P01),** TV / Monitor Main Board,** Samsung,** Unknown,"** Barcode/Serial string reads `MX10BN9400053TEB4NT3RXS5J`; date code `2022-03-25`, version `1905.0`."
+2026-10-12 15:51:31,** BN94-00053T (P01),** TV / Smart Monitor Main Board,** Samsung,** Unknown,"** Manufactured in Mexico (MX10), firmware/build date: 1905.0 (2022-03-25). Features Ethernet RJ45 port and surface-mount power/audio management ICs."
+2026-10-12 16:06:24,** BN94-00053T,** TV / Monitor Main Board,** Samsung,** Unknown,"** Label reads `BN94-00053T P01`, with manufacturing date `2022-03-25` and serial string `MX10BN9400053TEB4NT3RXS5J`. Visible components include ethernet/LAN port and onboard power/regulator ICs."
+2026-10-12 16:06:51,BN94-00053T,TV / Display Main Board,Samsung,Unknown,"Label details: `CAD ON`, firmware `1905.0`, date `2022-03-25`, serial `MX10BN9400053TEB4NT3RXS5J` (P01)"
+2026-10-12 16:32:07,** BN94-00053T,** Main Board (TV / Monitor),** Samsung,** Unknown,**
